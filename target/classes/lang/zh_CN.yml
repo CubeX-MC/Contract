@@ -1,4 +1,4 @@
-prefix: "&#F4D03F[Contracts]&#F1F5F9 "
+prefix: "&#F4D03F[Contract]&#F1F5F9 "
 
 status:
   open: "公开中"
@@ -94,7 +94,7 @@ messages:
     &#FFE066截止: &#FFFFFF%deadline%
     &#FFE066描述: &#F1F5F9%description%
   help: |
-    &#F4D03F==== Contracts ====
+    &#F4D03F==== Contract ====
     &#FFE066/contract &#F1F5F9- 打开合同大厅
     &#FFE066/contract service <奖金> <小时> <标题>|<描述> &#F1F5F9- 发布雇佣合同
     &#CFD8DC可选: &#FFE066/contract service <奖金> <小时> --mediator <中间人> <标题>|<描述>

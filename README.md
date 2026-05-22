@@ -1,6 +1,6 @@
-# Contracts
+# Contract
 
-![](https://bstats.org/signatures/bukkit/Contracts.svg)
+![](https://bstats.org/signatures/bukkit/Contract.svg)
 
 玩家对玩家合同平台。当前版本提供 SERVICE 委托、WAGER 对赌和 PARTNERSHIP 合作三类合同，重点先保证 Vault 托管资金、接单/接受邀请、提交、确认、裁决、取消退款和管理员仲裁流程正确。
 
@@ -9,7 +9,7 @@
 - Vault
 - 任意 Vault 经济插件，例如 CMI Economy
 
-运行时不依赖 CMI、QuickShop、Lands、RuleGems 或数据库驱动。
+运行时不依赖 CMI、QuickShop、Lands、RuleGems 或数据库驱动。GUI 铁砧输入使用的 AnvilGUI 已 shade 并重定位打包进插件 jar，无需单独安装。
 
 ## 构建
 
@@ -20,7 +20,7 @@ mvn package
 生成文件：
 
 ```text
-target/contracts-0.1.0.jar
+target/contract-0.1.0.jar
 ```
 
 ## 玩家命令
@@ -49,25 +49,36 @@ target/contracts-0.1.0.jar
 命令别名：
 
 ```text
-/contracts
 /ct
 ```
+
+## GUI 工作台
+
+`/contract`（或 `/contract gui`）打开合同工作台，全程图形界面，普通玩家无需记命令：
+
+- **合同工作台**：首页显示行动收件箱待办数量，入口包含创建合同、行动收件箱、合同大厅、我的合同、帮助和管理员工作台。
+- **行动收件箱**：集中显示需要你接受邀请、提交完成、确认付款、确认合作、接受中间人职责或裁决争议的合同。
+- **创建合同向导**：先选类型（委托/对赌/合作），再用铁砧逐项填写标题、描述、对方玩家、金额、押注、中间人/仲裁者和期限，界面实时显示条款预览与扣款明细。
+- **铁砧签署确认**：创建、接受邀请、接单、确认付款、中间人/仲裁裁决、取消合同、管理员强制付款/退款/关闭等资金动作，都会先进入确认页展示资金后果，再打开铁砧要求输入玩家名或“同意”完成签署。关闭铁砧或签名不符即视为取消，不会产生任何资金动作。
+- **管理员工作台**：`contract.admin.view` 可见，按争议/中断结算、进行中、全部分栏检索合同，强制付款/退款/关闭同样需要签署确认。
+
+命令保留为高级/脚本入口，资金逻辑与 GUI 完全共用同一 `ContractService` 路径。
 
 ## 权限
 
 ```text
-contracts.use
-contracts.create
-contracts.accept
-contracts.submit
-contracts.approve
-contracts.cancel
-contracts.dispute
-contracts.mediate
-contracts.admin
-contracts.admin.reload
-contracts.admin.settle
-contracts.admin.view
+contract.use
+contract.create
+contract.accept
+contract.submit
+contract.approve
+contract.cancel
+contract.dispute
+contract.mediate
+contract.admin
+contract.admin.reload
+contract.admin.settle
+contract.admin.view
 ```
 
 ## 管理命令
@@ -104,7 +115,7 @@ WAGER 使用创建时必填的仲裁者和 `/contract resolve <id> <a|b>`，保�
 - `SUBMITTED`：SERVICE 已提交完成，等待创建者确认。
 - `COMPLETED`、`CANCELLED`、`EXPIRED`、`DISPUTED`：终态或管理员待处理状态。
 
-GUI 合同大厅支持按全部/SERVICE/WAGER/PARTNERSHIP 筛选；“我的合同”会显示与玩家相关的待接受邀请、进行中、争议和历史合同。`/contract admin reload` 会关闭旧 GUI 会话，避免玩家在重载后继续操作旧数据。
+GUI 合同大厅支持按全部/SERVICE/WAGER/PARTNERSHIP 筛选；“我的合同”会显示与玩家相关的待接受邀请、进行中、争议和历史合同；行动收件箱会进一步筛出需要当前玩家处理的合同。所有资金动作都需要经过确认页和铁砧签署。`/contract admin reload` 会关闭旧 GUI 会话并清理创建草稿，避免玩家在重载后继续操作旧数据。
 
 ## 资金规则
 
@@ -179,9 +190,9 @@ display:
 合同数据保存到：
 
 ```text
-plugins/Contracts/contracts.yml
-plugins/Contracts/pending-transactions.yml
-plugins/Contracts/events.log
+plugins/Contract/contract.yml
+plugins/Contract/pending-transactions.yml
+plugins/Contract/events.log
 ```
 
 当前版本使用 Bukkit YAML 存储，避免引入 SQLite/MySQL 驱动。后续如果合同数量明显变多，再考虑数据库层。

@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: org.cubexmc.contracts.model.AssetTest
--------------------------------------------------------------------------------
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 s -- in org.cubexmc.contracts.model.AssetTest

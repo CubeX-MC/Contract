@@ -1,19 +1,19 @@
-# Contracts Improvement Plan
+# Contract Improvement Plan
 
 生成日期：2026-05-21  
 来源：代码、配置、README、PLAN、DESIGN 审查，以及 `mvn verify` 结果。
 
 ## 当前结论
 
-Contracts 是三个项目里自动化测试基础最好的一个：模型层抽象、WAGER、PARTNERSHIP、可选中间人、pending 事务存储和基础 SERVICE 流程已有 43 个单元测试通过。资金核心的 P0/P1/P2 收口项已完成；下一阶段重点转向“全 GUI 合同工作流”和“签署仪式感”，让玩家无需记命令即可完成创建、接受、确认、裁决和管理。
+Contract 是三个项目里自动化测试基础最好的一个：模型层抽象、WAGER、PARTNERSHIP、可选中间人、pending 事务存储、基础 SERVICE 流程、签名 token 与创建向导草稿校验已有 53 个单元测试通过。资金核心的 P0/P1/P2 收口项已完成；“全 GUI 合同工作流”和“铁砧签署仪式感”（GUI-1~GUI-6）已全部落地，玩家无需记命令即可完成创建、接受、确认、裁决和管理。
 
 验证基线：
 
 | 检查项 | 结果 |
 | --- | --- |
 | `mvn verify` | 通过 |
-| 自动测试 | 43 tests, 0 failures, 0 errors |
-| 产物 | `target/contracts-0.1.0.jar` |
+| 自动测试 | 53 tests, 0 failures, 0 errors |
+| 产物 | `target/contract-0.1.0.jar`（AnvilGUI 已 shade 并重定位打包） |
 | 必需依赖 | Vault 和 Vault-compatible economy provider |
 
 ## 优先级定义
@@ -30,25 +30,25 @@ Contracts 是三个项目里自动化测试基础最好的一个：模型层抽�
 | 优先级 | 状态 | 工作项 | 影响 | 涉及位置 | 验收标准 |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 完成 | 强化结算 idempotency 和 pending deposit 记录 | 结算先写 `SETTLEMENT` pending；每笔 Vault payout deposit 先写 `DEPOSIT` pending。重启恢复不会自动重放 deposit，而是把未完成结算转入 `DISPUTED` 并写事件日志，避免重复付款 | `service/ContractService.java`, `storage/PendingTransactionStore.java`, `storage/EventLog.java` | 每笔 payout 有可恢复事务记录；重启恢复不会重复付款；失败明确停在可人工处理状态 |
-| P1 | 完成 | 为结算失败/恢复补测试 | 新增 pending store 持久化测试，覆盖 `WITHDRAW` / `DEPOSIT` / `SETTLEMENT` 读写；新增 generic participant alias 和 optional mediator 测试，避免新类型在恢复/列表/权限视角漏判 | `src/test/java/org/cubexmc/contracts/storage/PendingTransactionStoreTest.java`, `src/test/java/org/cubexmc/contracts/model/ContractTest.java` | `mvn verify` 43 tests 通过；真实 Vault 中途失败仍需 live/manual smoke |
+| P1 | 完成 | 为结算失败/恢复补测试 | 新增 pending store 持久化测试，覆盖 `WITHDRAW` / `DEPOSIT` / `SETTLEMENT` 读写；新增 generic participant alias 和 optional mediator 测试，避免新类型在恢复/列表/权限视角漏判 | `src/test/java/org/cubexmc/contract/storage/PendingTransactionStoreTest.java`, `src/test/java/org/cubexmc/contract/model/ContractTest.java` | `mvn verify` 43 tests 通过；真实 Vault 中途失败仍需 live/manual smoke |
 | P1 | 完成 | 同步 README 到当前命令实现 | README 已补 `/contract wager`、`partner`、`resolve`、新状态、资金规则、pending 恢复和 admin close 语义 | `README.md`, `ContractCommand.java`, `lang/zh_CN.yml`, `lang/en_US.yml` | README 命令、资金规则、状态说明与源码一致 |
 | P1 | 完成 | 完成 `info` 的类型化详情 | `info` 展示类型、participants、押注、arbiter、payout 条件预览和 partnership 双方确认状态 | `command/ContractCommand.java:sendInfo`, `model/*` | SERVICE/WAGER/PARTNERSHIP 分别显示关键参与者、押注、仲裁/双方确认状态和结算预览 |
 | P1 | 完成 | GUI 支持 PENDING_ACCEPT 和新类型 | “我的合同”改用 generic related participant 视角；待接受邀请可直接 accept；WAGER 仲裁者有 A/B 裁决入口；PARTNERSHIP 双方有确认入口 | `gui/ContractGui.java`, `model/Contract.java` | “我的合同”能看到待接受邀请；WAGER/PARTNERSHIP 有接受、确认、裁决入口 |
 | P2 | 完成 | GUI 类型筛选和图标区分 | GUI 顶部添加全部/SERVICE/WAGER/PARTNERSHIP 筛选；`materialFor(type, status)` 按类型和终态选图标 | `gui/ContractGui.java` | 添加全部/SERVICE/WAGER/PARTNERSHIP 过滤；图标体现 type + status |
 | P2 | 完成 | 多语言配置收口 | `config.yml` 增加 `language: zh_CN`；`LanguageManager` 按配置加载；新增 `lang/en_US.yml`；类型/角色/条件标签本地化 | `config/LanguageManager.java`, `src/main/resources/lang`, `config.yml` | 支持 `language: zh_CN` / `en_US` 配置 |
-| P2 | 完成 | reload 后关闭或刷新旧 GUI session | `reloadContracts` 会调用 `ContractGui.closeSessions()` 清理旧 inventory session 和争议输入 prompt | `ContractsPlugin.reloadContracts`, `ContractGui` | `/contract admin reload` 后旧 GUI 关闭，避免旧数据操作 |
+| P2 | 完成 | reload 后关闭或刷新旧 GUI session | `reloadContracts` 会调用 `ContractGui.closeSessions()` 清理旧 inventory session 和争议输入 prompt | `ContractPlugin.reloadContracts`, `ContractGui` | `/contract admin reload` 后旧 GUI 关闭，避免旧数据操作 |
 | P2 | 完成 | Admin close 资金语义再确认 | README 和语言提示明确 close 不移动资金；资金处理应使用 admin pay/refund 或人工核对后 close | `ContractService.adminClose`, README, locale files | README 明确 close 是“无资金移动/人工处理” |
 | P2 | 完成 | SERVICE / PARTNERSHIP 可选中间人 | `/contract service` 和 `/contract partner` 支持 `--mediator <玩家>`；中间人需先接受职责，再裁决 pay/refund/owner/contractor；资金仍由服务器托管和 settlement pending 处理 | `ContractCommand.java`, `ContractService.java`, `ContractGui.java`, README, locale files | 子命令按类型命名；中间人不是参与方/收款方；裁决不绕过服务层结算 |
-| P1 | 待做 | 全 GUI 创建向导 | 当前创建仍依赖命令；普通玩家需要记住 SERVICE/WAGER/PARTNERSHIP 参数顺序，不符合成熟插件“一个根命令进入所有流程”的体验 | `gui/ContractGui.java`, new wizard/session classes, `ContractService`, locale files, README | `/contract` 后可选择类型、填写字段、预览条款、签名并创建 SERVICE/WAGER/PARTNERSHIP；无需输入创建命令 |
-| P1 | 待做 | 铁砧签名确认层 | 当前接受、确认付款、裁决等关键资金动作是按钮直触发，缺少明确的“我知道自己在签合同”仪式和二次确认 | GUI confirm/signature flow, optional anvil listener/util package, `ContractService` callers | 创建、接受邀请、接单、确认付款、中间人裁决、管理员 pay/refund/close 前需通过铁砧签名或明确确认；取消/返回不会产生资金动作 |
-| P2 | 待做 | 我的工作台与行动收件箱 | “我的合同”只是列表，未突出“需要我处理”的邀请、待签名、待确认、中间人待裁决、争议 | `ContractGui`, filters/query helpers, locale files | 首页显示行动数量；一键进入“待我处理”；按角色区分我发布/我接取/我仲裁/历史 |
-| P2 | 待做 | 管理员 GUI 工作台 | 管理命令仍需要输入 ID；高压场景下容易误操作或看漏资金后果 | `ContractGui` admin mode, permission checks, settlement preview | 管理员可在 GUI 查看争议/中断结算/全部合同，执行 pay/refund/close 前显示资金预览并签名确认 |
+| P1 | 完成 | 全 GUI 创建向导 | `/contract` 打开合同工作台；创建向导先选类型再用铁砧逐项填写标题/描述/对方/金额/押注/中间人/期限，实时显示条款预览和扣款明细，签署后调用 `ContractService` 创建 | `gui/ContractGui.java`, `gui/CreateDraft.java`, `command/ContractCommand.java` | `/contract` 后可选择类型、填写字段、预览条款、签名并创建 SERVICE/WAGER/PARTNERSHIP；无需输入创建命令 |
+| P1 | 完成 | 铁砧签名确认层 | 创建、接受邀请、接单、确认付款、裁决、取消、管理员 pay/refund/close 都先进确认页展示资金后果，再打开铁砧要求输入玩家名或“同意”；签名不符或关闭铁砧即取消 | `gui/ContractGui.java`, `gui/Signature.java`, AnvilGUI 依赖 | 关键资金动作前需通过铁砧签名确认；取消/返回不会产生资金动作 |
+| P2 | 完成 | 我的工作台与行动收件箱 | 工作台首页显示行动收件箱待办数量；行动收件箱集中显示需要当前玩家接受/提交/确认/裁决/处理争议的合同 | `gui/ContractGui.java` | 首页显示行动数量；一键进入“待我处理”；按状态区分待办与历史 |
+| P2 | 完成 | 管理员 GUI 工作台 | 管理员工作台按争议/进行中/全部分栏检索，详情页提供强制付款/退款/关闭入口，执行前显示资金后果并签署确认 | `gui/ContractGui.java`, permission checks | 管理员可在 GUI 查看争议/中断结算/全部合同，执行 pay/refund/close 前显示资金后果并签名确认 |
 | P3 | 后续 | ALLIANCE / ITEM / SALE / LAND_PERMISSION 路线图拆分 | PLAN 已列多项后续类型，模型有枚举/Asset 占位但未落地 | `PLAN.md`, `model/Asset.java`, `model/ContractType.java` | 后续版本独立拆分；当前 README 不承诺未实现类型 |
 | P3 | 后续 | PlaceholderAPI 和声望系统 | PLAN 阶段 D 未完成 | `PLAN.md`, future integration package | 明确后续版本，不阻塞当前合同资金核心 |
 
 ## GUI 体验蓝图
 
-参考成熟 Bukkit/Spigot 插件的共同模式，Contracts 的 GUI 不应只是命令快捷键，而应成为默认操作系统：`/contract` 打开主界面，所有常用任务都能从清晰分类、可返回、可预览、可确认的库存界面完成。命令保留为高级/脚本入口，但玩家日常不需要记参数顺序。
+参考成熟 Bukkit/Spigot 插件的共同模式，Contract 的 GUI 不应只是命令快捷键，而应成为默认操作系统：`/contract` 打开主界面，所有常用任务都能从清晰分类、可返回、可预览、可确认的库存界面完成。命令保留为高级/脚本入口，但玩家日常不需要记参数顺序。
 
 ### 设计原则
 
@@ -117,7 +117,7 @@ Contracts 是三个项目里自动化测试基础最好的一个：模型层抽�
 
 ### 铁砧签名确认
 
-铁砧签名是 Contracts 的仪式感核心，但也要短、明确、可取消。
+铁砧签名是 Contract 的仪式感核心，但也要短、明确、可取消。
 
 适用动作：
 
@@ -156,7 +156,7 @@ Contracts 是三个项目里自动化测试基础最好的一个：模型层抽�
 
 ### 管理员工作台
 
-管理员入口只对 `contracts.admin.view` 显示。管理员工作台分栏：
+管理员入口只对 `contract.admin.view` 显示。管理员工作台分栏：
 
 - 争议合同。
 - pending settlement 恢复/人工核对。
@@ -171,14 +171,14 @@ Contracts 是三个项目里自动化测试基础最好的一个：模型层抽�
 
 ### 实施阶段
 
-| 阶段 | 目标 | 验收 |
-| --- | --- | --- |
-| GUI-1 | 重构 GUI session 为可扩展页面栈 | 返回/刷新/分页不丢上下文；reload 清理所有会话 |
-| GUI-2 | 我的工作台 + 行动收件箱 | 玩家能一眼看到待接受、待确认、待裁决、争议 |
-| GUI-3 | 创建向导 SERVICE | 不用命令可创建 SERVICE；铁砧签名后扣款创建 |
-| GUI-4 | 创建向导 WAGER/PARTNERSHIP | 支持对方、中间人、押注、期限、预览和签名 |
-| GUI-5 | 关键动作签名确认 | 接受、确认付款、裁决、管理员动作都必须签名 |
-| GUI-6 | 管理员工作台 | 争议/pending/全部合同可视化处理 |
+| 阶段 | 目标 | 验收 | 状态 |
+| --- | --- | --- | --- |
+| GUI-1 | 重构 GUI session 为可扩展页面栈 | 返回/刷新/分页不丢上下文；reload 清理所有会话 | 完成 |
+| GUI-2 | 我的工作台 + 行动收件箱 | 玩家能一眼看到待接受、待确认、待裁决、争议 | 完成 |
+| GUI-3 | 创建向导 SERVICE | 不用命令可创建 SERVICE；铁砧签名后扣款创建 | 完成 |
+| GUI-4 | 创建向导 WAGER/PARTNERSHIP | 支持对方、中间人、押注、期限、预览和签名 | 完成 |
+| GUI-5 | 关键动作签名确认 | 接受、确认付款、裁决、管理员动作都必须签名 | 完成 |
+| GUI-6 | 管理员工作台 | 争议/pending/全部合同可视化处理 | 完成 |
 
 ### 验证要求
 
@@ -191,9 +191,9 @@ Contracts 是三个项目里自动化测试基础最好的一个：模型层抽�
 
 1. P0 payout pending/idempotency 已完成。
 2. README、info、基础 GUI、多语言和 reload GUI session 已同步。
-3. 下一步先做 GUI-1/GUI-2，把现有详情页升级为可扩展工作台。
-4. 再做 GUI-3 到 GUI-5，用铁砧签名接管创建和关键资金动作。
-5. 最后做 GUI-6 管理员工作台，以及 ALLIANCE、ITEM、LAND_PERMISSION 等后续类型。
+3. GUI-1~GUI-6 已完成：工作台、行动收件箱、创建向导、铁砧签署确认和管理员工作台均已落地。
+4. 剩余 P3：ALLIANCE / ITEM / SALE / LAND_PERMISSION 类型拆分，以及 PlaceholderAPI 和声望系统，留待后续版本。
+5. 上线前建议在带 Vault provider 的真实服务器做一轮手动 smoke（见“验证要求”）。
 
 ## 发布前检查清单
 

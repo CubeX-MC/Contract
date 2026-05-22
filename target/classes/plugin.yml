@@ -1,6 +1,6 @@
-name: Contracts
+name: Contract
 version: 0.1.0
-main: org.cubexmc.contracts.ContractsPlugin
+main: org.cubexmc.contract.ContractPlugin
 api-version: '1.18'
 author: CubeX-MC
 description: Player-to-player contract board with Vault-backed escrow.
@@ -8,48 +8,48 @@ depend: [Vault]
 
 commands:
   contract:
-    description: Contracts root command.
-    aliases: [contracts, ct]
+    description: Contract root command.
+    aliases: [ct]
     usage: /contract help
 
 permissions:
-  contracts.use:
+  contract.use:
     default: true
     description: Open and inspect the contract board.
-  contracts.create:
+  contract.create:
     default: true
     description: Create service, wager, and partnership contracts.
-  contracts.accept:
+  contract.accept:
     default: true
     description: Accept open contracts.
-  contracts.submit:
+  contract.submit:
     default: true
     description: Submit accepted contracts for owner approval.
-  contracts.approve:
+  contract.approve:
     default: true
     description: Approve submitted contracts you own.
-  contracts.cancel:
+  contract.cancel:
     default: true
     description: Cancel eligible contracts.
-  contracts.dispute:
+  contract.dispute:
     default: true
     description: Open a dispute for eligible contracts.
-  contracts.mediate:
+  contract.mediate:
     default: true
     description: Accept mediator duties and resolve contracts you mediate.
-  contracts.admin:
+  contract.admin:
     default: op
-    description: Contracts administration.
+    description: Contract administration.
     children:
-      contracts.admin.reload: true
-      contracts.admin.settle: true
-      contracts.admin.view: true
-  contracts.admin.reload:
+      contract.admin.reload: true
+      contract.admin.settle: true
+      contract.admin.view: true
+  contract.admin.reload:
     default: op
-    description: Reload Contracts.
-  contracts.admin.settle:
+    description: Reload Contract.
+  contract.admin.settle:
     default: op
     description: Force pay, refund, or close contracts.
-  contracts.admin.view:
+  contract.admin.view:
     default: op
     description: View all contracts.

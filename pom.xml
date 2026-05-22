@@ -5,15 +5,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.cubexmc</groupId>
-    <artifactId>contracts</artifactId>
+    <artifactId>contract</artifactId>
     <version>0.1.0</version>
-    <name>Contracts</name>
+    <name>Contract</name>
     <packaging>jar</packaging>
 
     <properties>
         <java.release>17</java.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <final.name>contracts-${project.version}</final.name>
+        <final.name>contract-${project.version}</final.name>
     </properties>
 
     <repositories>
@@ -24,6 +24,10 @@
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
+        </repository>
+        <repository>
+            <id>codemc-repo</id>
+            <url>https://repo.codemc.io/repository/maven-public/</url>
         </repository>
     </repositories>
 
@@ -39,6 +43,12 @@
             <artifactId>VaultAPI</artifactId>
             <version>1.7.1</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.wesjd</groupId>
+            <artifactId>anvilgui</artifactId>
+            <version>1.9.6-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -65,6 +75,33 @@
                 <configuration>
                     <release>${java.release}</release>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <artifactSet>
+                                <includes>
+                                    <include>net.wesjd:anvilgui</include>
+                                </includes>
+                            </artifactSet>
+                            <relocations>
+                                <relocation>
+                                    <pattern>net.wesjd.anvilgui</pattern>
+                                    <shadedPattern>org.cubexmc.contract.lib.anvilgui</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

@@ -1,4 +1,4 @@
-prefix: "&#F4D03F[Contracts]&#F1F5F9 "
+prefix: "&#F4D03F[Contract]&#F1F5F9 "
 
 status:
   open: "Open"
@@ -94,7 +94,7 @@ messages:
     &#FFE066Deadline: &#FFFFFF%deadline%
     &#FFE066Description: &#F1F5F9%description%
   help: |
-    &#F4D03F==== Contracts ====
+    &#F4D03F==== Contract ====
     &#FFE066/contract &#F1F5F9- Open the board
     &#FFE066/contract service <reward> <hours> <title>|<description> &#F1F5F9- Post a service contract
     &#CFD8DCOptional: &#FFE066/contract service <reward> <hours> --mediator <player> <title>|<description>

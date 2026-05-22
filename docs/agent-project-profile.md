@@ -1,15 +1,15 @@
 # Agent Project Profile
 
-This file contains Contracts-specific facts for agents. Reusable skills should
+This file contains Contract-specific facts for agents. Reusable skills should
 read this file instead of embedding project-specific knowledge.
 
 ## Project Identity
 
-- Project: Contracts
+- Project: Contract
 - Type: Minecraft server plugin
 - Language/runtime: Java 17, Maven, Spigot API compile baseline
-- Main class: `org.cubexmc.contracts.ContractsPlugin`
-- Artifact: `target/contracts-<version>.jar`
+- Main class: `org.cubexmc.contract.ContractPlugin`
+- Artifact: `target/contract-<version>.jar`
 - Core promise: provide a player-to-player contract board with Vault-backed
   escrow, submissions, approval, cancellation, disputes, and admin settlement.
 
@@ -35,7 +35,7 @@ Platform and dependency claims must stay synchronized across:
 
 ## Architecture Map
 
-- Bootstrap/lifecycle: `ContractsPlugin`
+- Bootstrap/lifecycle: `ContractPlugin`
 - Config/defaults: `src/main/resources/config.yml`
 - Commands: `command/ContractCommand`
 - GUI: `gui/ContractGui`
@@ -45,7 +45,7 @@ Platform and dependency claims must stay synchronized across:
 - Models: `model/*`
 - Localization: `config/LanguageManager`, `src/main/resources/lang/zh_CN.yml`
 - Utilities: `util/Text`
-- Tests: `src/test/java/org/cubexmc/contracts/**`
+- Tests: `src/test/java/org/cubexmc/contract/**`
 
 ## Hard Boundaries
 
@@ -72,9 +72,9 @@ Default resources:
 
 Runtime data:
 
-- `plugins/Contracts/contracts.yml`
-- `plugins/Contracts/pending-transactions.yml`
-- `plugins/Contracts/events.log`
+- `plugins/Contract/contract.yml`
+- `plugins/Contract/pending-transactions.yml`
+- `plugins/Contract/events.log`
 
 Any config or data schema change requires:
 
@@ -85,9 +85,9 @@ Any config or data schema change requires:
 
 ## Human Interaction Surfaces
 
-Contracts UX happens through:
+Contract UX happens through:
 
-- `/contract`, `/contracts`, and `/ct` commands.
+- `/contract` and `/ct` commands.
 - Contract board GUI.
 - Contract creation, list, mine, info, accept, submit, approve, cancel, dispute,
   and admin settlement flows.
