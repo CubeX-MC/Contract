@@ -66,6 +66,8 @@ claims are in scope.
 - Required plugin dependency: Vault.
 - Required runtime service: a Vault-compatible economy provider.
 - Economy load-order soft dependencies: Essentials, EssentialsX, and CMI.
+- Optional integration: Reputations. `softdepend` controls load order only;
+  Contract has no project/API dependency on it and remains standalone.
 - Folia: `folia-supported: true`; scheduling is routed through
   `cubex-scheduler`/FoliaLib. New scheduler or world-access behavior still
   requires an appropriate Paper/Folia runtime smoke check.
@@ -94,6 +96,12 @@ Keep platform and artifact claims synchronized across:
 - Economy recovery journal: `storage/PendingTransactionStore`.
 - Batch acceptance history: `storage/BatchAcceptanceStore`.
 - Audit log: `storage/EventLog`.
+- Local reputation state: `storage/ReputationStore` and `reputation.yml`.
+- Optional reputation delta adapter: `integration/reputation/ReputationsMirror`,
+  connected through shaded `cubex-integrations` and the provider class loader.
+- Provider-owned optional API: `api/escrow/ContractEscrowService`; its Regions
+  implementation accepts only funded `IN_PROGRESS` WAGERs and persists lock/
+  terminal operation metadata inside `contract.yml`.
 - Models: `model/*`.
 - Localization: `config/LanguageManager`, `resources/lang/zh_CN.yml`, and
   `resources/lang/en_US.yml`.
@@ -117,6 +125,14 @@ Keep platform and artifact claims synchronized across:
 - Adventure remains server-provided; do not shade or relocate `net.kyori`.
 - Each implementation slice must remain independently buildable and must not
   mix unrelated gameplay, refactor, or compatibility changes.
+- Optional plugin adapters must preserve local behavior, must not compile
+  against or shade provider APIs, and must treat provider failures as
+  best-effort degradation. Transactional integrations require a separate,
+  idempotent domain contract.
+- A region-funded WAGER cannot use ordinary settlement paths. The external
+  transaction operation id owns both its lock and terminal call and is persisted
+  before payout; incomplete or conflicting terminal attempts fail closed as
+  manual review instead of paying twice.
 
 ## Current Batch Substrate
 
