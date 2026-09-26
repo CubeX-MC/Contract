@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Regions escrow replay (2026-09-23)**: acknowledge a persisted lock with the same operation ID and region even after the WAGER settles or becomes disputed. A different operation or region remains a conflict; a fresh eligibility check still rejects a terminal contract. See [R1 evidence](docs/r1-lock-replay-2026-09-23.md).
+
 - **ALLIANCE substrate (not player-accessible)**: add three-or-more-member money-only model creation, immutable UUID-scoped funded signatures/approvals, `PENDING_ACCEPT_MULTI`, and deterministic principal-only refund/success/breach plans. Terminal settlement and player creation remain disconnected. The optional `alliance` v1 save section rejects malformed signatures instead of dropping the contract or restoring a stale signature backup; do not downgrade saves containing ALLIANCE records. Lang v4→v5 adds multi-party state labels while retaining operator edits.
 - **ALLIANCE funding service**: escrow creator/member stakes with UUID-specific operation IDs, activate only after the last signature, count partially funded memberships toward limits, and roll back failed signature saves. A phased pending journal separates prepared, withdrawn, refunding, refunded, and rejected outcomes; ambiguous Vault outcomes require manual review rather than automatic replay. Journal writes now use strict reads and atomic replacement; legacy entry fields remain readable. Do not downgrade while phased entries remain. Lang v5→v6 adds funding/recovery feedback without replacing custom text. No command/GUI creation or terminal payout execution is enabled by this slice.
 
