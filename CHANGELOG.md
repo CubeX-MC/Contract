@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **R1 payout uncertainty (2026-09-23)**: retain the write-ahead deposit record when Vault returns a failed payout response, dispute the WAGER, and reject replay with `REVIEW_REQUIRED` instead of risking a second credit. Automated tests cover a failed first payout and a failure reply after a partial credit; see [evidence](docs/r1-payout-uncertainty-2026-09-23.md).
 - **Regions escrow replay (2026-09-23)**: acknowledge a persisted lock with the same operation ID and region even after the WAGER settles or becomes disputed. A different operation or region remains a conflict; a fresh eligibility check still rejects a terminal contract. See [R1 evidence](docs/r1-lock-replay-2026-09-23.md).
 
 - **ALLIANCE substrate (not player-accessible)**: add three-or-more-member money-only model creation, immutable UUID-scoped funded signatures/approvals, `PENDING_ACCEPT_MULTI`, and deterministic principal-only refund/success/breach plans. Terminal settlement and player creation remain disconnected. The optional `alliance` v1 save section rejects malformed signatures instead of dropping the contract or restoring a stale signature backup; do not downgrade saves containing ALLIANCE records. Lang v4→v5 adds multi-party state labels while retaining operator edits.
