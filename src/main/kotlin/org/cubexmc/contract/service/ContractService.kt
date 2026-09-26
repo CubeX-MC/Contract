@@ -1998,9 +1998,10 @@ class ContractService(
                         return outcome
                     }
                     val deposit = depositWithPending(contract, targetUuid, share, purpose, settlementId, "rule-$index-$recipientRole")
-                    if (!deposit.success()) {
+                    if (!deposit.result.success()) {
                         outcome.success = false
-                        outcome.error = deposit.reason()
+                        outcome.externalEffects = outcome.externalEffects || deposit.economyAttempted
+                        outcome.error = deposit.result.reason()
                         return outcome
                     }
                     outcome.externalEffects = true
@@ -2016,9 +2017,10 @@ class ContractService(
                         return outcome
                     }
                     val deposit = depositWithPending(contract, arbiterUuid, share, purpose, settlementId, "rule-$index-ARBITER")
-                    if (!deposit.success()) {
+                    if (!deposit.result.success()) {
                         outcome.success = false
-                        outcome.error = deposit.reason()
+                        outcome.externalEffects = outcome.externalEffects || deposit.economyAttempted
+                        outcome.error = deposit.result.reason()
                         return outcome
                     }
                     outcome.externalEffects = true
@@ -2036,19 +2038,23 @@ class ContractService(
         purpose: String,
         settlementId: String,
         payoutKey: String,
-    ): EconomyService.TransactionResult {
+    ): PayoutDeposit {
         val pendingId = try {
             pending.beginDeposit(playerUuid, amount, purpose, contract.id(), payoutKey, settlementId)
         } catch (ex: IOException) {
-            return EconomyService.TransactionResult.fail(ui("err-payout-log", mapOf("error" to (ex.message ?: ""))))
+            return PayoutDeposit(
+                EconomyService.TransactionResult.fail(ui("err-payout-log", mapOf("error" to (ex.message ?: "")))),
+                economyAttempted = false,
+            )
         }
         val deposit = economy.deposit(playerUuid, amount)
         if (!deposit.success()) {
-            tryClearPending(pendingId)
-            return deposit
+            // Vault's unsuccessful reply does not prove that no money moved. Keep the write-ahead
+            // record and dispute the contract, so a second settlement cannot repeat the payout.
+            return PayoutDeposit(deposit, economyAttempted = true)
         }
         tryClearPending(pendingId)
-        return deposit
+        return PayoutDeposit(deposit, economyAttempted = true)
     }
 
     private fun collectDeliveryItems(player: Player, material: Material, amount: Int): DeliveryCollection {
@@ -2146,6 +2152,11 @@ class ContractService(
         var toArbiter: BigDecimal = BigDecimal.ZERO
         var externalEffects: Boolean = false
     }
+
+    private data class PayoutDeposit(
+        val result: EconomyService.TransactionResult,
+        val economyAttempted: Boolean,
+    )
 
     private class DeliveryCollection(
         val items: List<ItemStack>,

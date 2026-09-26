@@ -38,6 +38,56 @@ class ContractEscrowServiceImplTest {
     }
 
     @Test
+    fun `persisted lock replays after settlement without reopening funding`() {
+        val fixture = fixture()
+        assertTrue(fixture.service.lock("match-1", fixture.contract.id(), "arena").successful())
+        assertTrue(fixture.service.settle("match-1", fixture.contract.id(), "arena", fixture.partyA).successful())
+        val reloadedStorage = ContractStorage(
+            tempDir.resolve("contract.yml").toFile(),
+            CubexLogger(Logger.getLogger("ContractEscrowServiceImplTest.lock-reload")),
+        ).apply { load() }
+        val executorAfterRestart = FakeExecutor(failWithDispute = false)
+        val serviceAfterRestart = ContractEscrowServiceImpl(
+            reloadedStorage,
+            executorAfterRestart,
+            CubexLogger(Logger.getLogger("ContractEscrowServiceImplTest.lock-reload")),
+        )
+
+        val replay = serviceAfterRestart.lock("match-1", fixture.contract.id(), "arena")
+        val otherOperation = serviceAfterRestart.lock("match-2", fixture.contract.id(), "arena")
+        val otherRegion = serviceAfterRestart.lock("match-1", fixture.contract.id(), "other-arena")
+        val freshCheck = serviceAfterRestart.check(fixture.contract.id(), "arena")
+
+        assertEquals(ContractEscrowCode.REPLAYED, replay.code())
+        assertTrue(replay.successful())
+        assertEquals(ContractEscrowCode.LOCK_CONFLICT, otherOperation.code())
+        assertEquals(ContractEscrowCode.LOCK_CONFLICT, otherRegion.code())
+        assertEquals(ContractEscrowCode.NOT_ELIGIBLE, freshCheck.code())
+        assertEquals(1, fixture.executor.locks)
+        assertEquals(1, fixture.executor.settlements)
+        assertEquals(0, executorAfterRestart.locks)
+        assertEquals(0, executorAfterRestart.settlements)
+    }
+
+    @Test
+    fun `persisted lock replays after dispute without retrying payout`() {
+        val fixture = fixture(failWithDispute = true)
+        assertTrue(fixture.service.lock("match-1", fixture.contract.id(), "arena").successful())
+        assertEquals(
+            ContractEscrowCode.REVIEW_REQUIRED,
+            fixture.service.settle("match-1", fixture.contract.id(), "arena", fixture.partyB).code(),
+        )
+
+        val replay = fixture.service.lock("match-1", fixture.contract.id(), "arena")
+
+        assertEquals(ContractEscrowCode.REPLAYED, replay.code())
+        assertTrue(replay.successful())
+        assertEquals(ContractEscrowCode.NOT_ELIGIBLE, fixture.service.check(fixture.contract.id(), "arena").code())
+        assertEquals(1, fixture.executor.locks)
+        assertEquals(1, fixture.executor.settlements)
+    }
+
+    @Test
     fun `different operations and unrelated winners cannot move locked funds`() {
         val fixture = fixture()
         fixture.service.lock("match-1", fixture.contract.id(), "arena")
@@ -145,9 +195,12 @@ class ContractEscrowServiceImplTest {
     }
 
     private class FakeExecutor(private val failWithDispute: Boolean) : RegionFundingExecutor {
+        var locks = 0
         var settlements = 0
 
-        override fun recordLock(contract: Contract, regionId: String, operationId: String) = Unit
+        override fun recordLock(contract: Contract, regionId: String, operationId: String) {
+            locks++
+        }
 
         override fun settle(
             contract: Contract,

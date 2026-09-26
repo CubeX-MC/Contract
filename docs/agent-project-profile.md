@@ -139,6 +139,9 @@ Keep platform and artifact claims synchronized across:
   transaction operation id owns both its lock and terminal call and is persisted
   before payout; incomplete or conflicting terminal attempts fail closed as
   manual review instead of paying twice.
+- A failed Vault deposit response during settlement does not prove that no credit
+  occurred. Keep its write-ahead deposit entry, dispute the contract, and require
+  reconciliation before another payout attempt.
 
 ## Current Batch Substrate
 

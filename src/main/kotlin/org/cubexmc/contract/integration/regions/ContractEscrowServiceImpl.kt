@@ -34,11 +34,22 @@ internal class ContractEscrowServiceImpl(
 
     private fun lockInternal(operationId: String, contractId: String, regionId: String): ContractEscrowResult {
         if (operationId.isBlank()) return result(ContractEscrowCode.INVALID_REQUEST, detail = "operationId must not be blank.")
-        val checked = checkInternal(contractId, regionId)
-        if (!checked.successful()) return checked
+        val invalid = validateInput(contractId, regionId)
+        if (invalid != null) return invalid
         val contract = resolve(contractId) ?: return result(ContractEscrowCode.CONTRACT_NOT_FOUND)
         val existingOperation = contract.metadata[RegionFundingMetadata.LOCK_OPERATION]
         if (existingOperation != null) {
+            val lockedRegion = contract.metadata[RegionFundingMetadata.REGION_ID]
+            if (lockedRegion != regionId) {
+                return response(
+                    ContractEscrowCode.LOCK_CONFLICT,
+                    contract,
+                    regionId,
+                    existingOperation,
+                    detail = "The contract is locked to region $lockedRegion.",
+                )
+            }
+            // The lock is durable. Replay remains valid after settlement or dispute changes eligibility.
             return if (existingOperation == operationId) response(
                 ContractEscrowCode.REPLAYED,
                 contract,
@@ -55,6 +66,8 @@ internal class ContractEscrowServiceImpl(
                 detail = "The contract is already locked by another operation.",
             )
         }
+        val checked = eligibility(contract, regionId)
+        if (!checked.successful()) return checked
 
         contract.metadata[RegionFundingMetadata.REGION_ID] = regionId
         contract.metadata[RegionFundingMetadata.LOCK_OPERATION] = operationId

@@ -206,7 +206,9 @@ SERVICE 奖金进入插件托管记录。创建费直接作为经济回收。
 
 WAGER 创建时扣除甲方押注；乙方接受时扣除乙方押注。裁决后胜方获得双方押注扣除完成佣金后的金额，佣金作为经济回收。待接受超时或甲方取消时只退还甲方已托管押注，不会给未接受的乙方付款。
 
-WAGER 被 Regions 资金 lease 锁定后，普通仲裁、自动结算和无资金 `admin close` 会被阻止，避免与比赛结果竞争。Regions 正常提交胜者时按甲/乙方胜规则结算；强制结束、reload 或重启恢复走双方退款。`admin refund` 是紧急完整退款通道，但会让 Regions 的残留 lease 进入人工复核。
+WAGER 被 Regions 资金 lease 锁定后，普通仲裁、自动结算和无资金 `admin close` 会被阻止，避免与比赛结果竞争。Regions 正常提交胜者时按甲/乙方胜规则结算；强制结束、reload 或重启恢复走双方退款。已落盘的锁以同一 operation id 和场地重放时，即使合同后来进入已结算或争议状态也返回 `REPLAYED`；这只确认旧锁存在，新的 `check` 仍会拒绝终态合同。`admin refund` 是紧急完整退款通道，但会让 Regions 的残留 lease 进入人工复核。
+
+如果 Vault 的结算入账返回失败，Contract 无法据此确认资金未移动：会保留该笔 `pending-transactions.yml` 付款记录，将合同标记为争议并向 Regions 返回 `REVIEW_REQUIRED`。同一结算不会自动再付款；管理员须核对经济插件余额、Contract 事件与待办记录后处理。
 
 PARTNERSHIP 创建时扣除甲方押注；乙方接受时扣除乙方押注。双方确认成功时各自取回自己的押注扣除完成佣金后的金额；取消、超时或管理员退款按当前状态退回已托管押注。
 
